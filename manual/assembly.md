@@ -1,11 +1,15 @@
-# td4asm
+# Assembly info
 
-## cpu detail
-- 4bit opcode
-- 4bit immediate data
+## Data bus
+```
+|     4 bit     |     4 bit     |
++---+---+---+---+---+---+---+---+
+|    Op code    |    Im data    |
++---+---+---+---+---+---+---+---+
+```
 
 ## instruction list
-[reg] = `A`, `B`
+[reg] = `A`, `B`  
 [Im] = `8`, `0b1000`, `0x8`, `1000b`, `8h`
 
 - `MOV A, [Im]`

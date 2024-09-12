@@ -1,22 +1,16 @@
 FLEX = flex -I
 BISON = bison -d
 
+OUTNAME = td4asm
+OBJ = asm.tab.o lex.yy.o src/op/op.o src/log/log.o
+LIBS = -ly -lfl -lm
 CC = gcc
 
 .PHONY: all
 all: td4asm
 
-td4asm: asm.tab.o lex.yy.o op.o log.o
-	$(CC) -o td4asm asm.tab.o lex.yy.o op.o log.o -Wall -ly -lfl -lm
-
-asm.tab.o: asm.tab.h
-lex.yy.o: lex.yy.c
-
-op.o: 
-	$(CC) -o op.o -c src/op/op.c
-
-log.o: 
-	$(CC) -o log.o -c src/log/log.c
+$(OUTNAME): $(OBJ)
+	$(CC) -o $(OUTNAME) $(OBJ) $(LIBS) -Wall
 
 asm.tab.c: src/asm.y
 	$(BISON) src/asm.y

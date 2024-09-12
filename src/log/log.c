@@ -1,6 +1,6 @@
 #include "log.h"
 
-int isDebug = 0;
+extern int isDebug;
 
 void devlogf(const char *format, ...)
 {

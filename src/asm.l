@@ -12,8 +12,12 @@ REGISTER [ABab]
 SPLITTER ,
 
 DEC_IMDATA [0-9]+
-HEX_IMDATA 0x([0123456789abcdef]+)|([0123456789abcdef])+h
-BIN_IMDATA (0b[01]+|[01]+h)
+
+ZEROX_IMDATA 0x([0123456789abcdefABCDEF]+)
+h_IMDATA ([0123456789abcdefABCDEF])+h
+
+ZEROB_IMDATA 0b[01]+
+b_IMDATA [01]+b
 
 LF         "\n"
 
@@ -21,16 +25,30 @@ LF         "\n"
 
 
 {DEC_IMDATA} { 
-    yylval.imdata = atoi(yytext);
+    yylval.imdata = (int)strtol(yytext, NULL, 10);
     return IMDATA;
 }
 
-{HEX_IMDATA} { 
-    sscanf(yytext, "%x", &yylval.imdata);
+{ZEROX_IMDATA} { 
+    sscanf(yytext, "0x%x", &yylval.imdata);
     return IMDATA; 
 }
 
-{BIN_IMDATA} { printf("bin integer detected.\n"); }
+{h_IMDATA} { 
+    sscanf(yytext, "%xh", &yylval.imdata);
+    return IMDATA; 
+}
+
+{ZEROB_IMDATA} {
+    yylval.imdata = (int)strtol(yytext+2, NULL, 2);
+    return IMDATA;
+}
+
+{b_IMDATA} {
+    yylval.imdata = (int)strtol(yytext, NULL, 2);
+    return IMDATA;
+}
+
 
 {LF}      { return(LF); }
 

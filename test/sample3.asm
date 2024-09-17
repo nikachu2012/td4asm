@@ -1,0 +1,12 @@
+main: MOV A, 0xf
+MOV B, fh
+MOV A, 0b1000
+MOV B, A
+ADD A, 1000b
+ADD B, 10
+IN A
+IN B
+OUT 10
+OUT B
+JMP 10
+JNC 10

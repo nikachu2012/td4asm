@@ -29,6 +29,7 @@ void yyerror(const char *msg);
 
 %token LF
 %token SPLITTER
+%token LABEL
 
 %token <imdata> IMDATA
 %token <keyword> KEYWORD
@@ -37,9 +38,15 @@ void yyerror(const char *msg);
 %type <opcode> expr
 
 %%
-input : expr LF { current_line++; }
-| input expr LF { current_line++; }
+input : line LF { current_line++; }
+| input line LF { current_line++; }
 | LF { exit(0); }
+;
+
+line : expr
+| KEYWORD LABEL expr {
+    printf("LABEL with expr %s\n", $1);
+}
 ;
 
 expr : KEYWORD {
@@ -110,6 +117,21 @@ expr : KEYWORD {
 }
 | KEYWORD IMDATA {
     devlogf("parse (line:%d) op: %s 0x%x\n", current_line, $1, $2);
+
+    operate_keyword_im p;
+    if(search_keyword_im_list(&p, $1)){
+        yyerror("undefined operation");
+    }
+    else{
+        devlogf("convert to: 0x%x\n", p.opcode | ($2 & 0x0f));
+
+        uint8_t opcode = p.opcode | ($2 & 0x0f);
+        fwrite(&opcode, sizeof(uint8_t), 1, yyout);
+    }
+    free($1);
+}
+| KEYWORD KEYWORD {
+    devlogf("parse (line:%d) op: %s labelname:\n", current_line, $1, $2);
 
     operate_keyword_im p;
     if(search_keyword_im_list(&p, $1)){

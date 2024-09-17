@@ -6,10 +6,14 @@
 
 WHITESPACE [ \t]
 
-KEYWORD ^[a-zA-Z]+
+KEYWORD [a-zA-Z]+
+
 REGISTER [ABab]
 
 SPLITTER ,
+LABEL :
+
+COMMENT (;.*)
 
 DEC_IMDATA [0-9]+
 
@@ -54,6 +58,8 @@ LF         "\n"
 
 {SPLITTER} { return SPLITTER; }
 
+{LABEL} { return LABEL; }
+
 {REGISTER} {
     yylval.reg = yytext[0];
     return REGISTER;
@@ -64,6 +70,7 @@ LF         "\n"
     return KEYWORD; 
 }
 
+{COMMENT}
 {WHITESPACE}
 .
 %%

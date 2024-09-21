@@ -7,12 +7,21 @@
 
 #include "src/op/op.h"
 #include "src/log/log.h"
+#include "src/label/label.h"
+
+#define MEMORY_SIZE 16
 
 int isDebug;
 extern FILE *yyin;
 extern FILE *yyout;
 
-int current_line = 1;
+extern int currentLabelIndex;
+extern int currentRefIndex;
+extern label labelList[];
+extern reference referenceList[];
+
+uint8_t result[MEMORY_SIZE];
+int current_line = 1, nowAddress = 0;
 char *input, *output;
 
 extern int yylex(void);
@@ -43,11 +52,26 @@ input : line LF { current_line++; }
 | LF { exit(0); }
 ;
 
-line : expr
-| KEYWORD LABEL expr {
-    printf("LABEL with expr %s\n", $1);
+line : expr {
+    nowAddress++;
+    if(nowAddress >= MEMORY_SIZE)
+    {
+        YYACCEPT;
+    }
 }
-;
+| KEYWORD LABEL expr {    
+    label labelData = { nowAddress, strdup($1) };
+    printf("label address 0x%02x, %s\n", labelData.address, labelData.labelname);
+
+    int status = addLabel(labelData);
+
+    nowAddress++;
+    if(nowAddress >= MEMORY_SIZE)
+    {
+        YYACCEPT;
+    }
+}
+
 
 expr : KEYWORD {
     devlogf("parse (line:%d) op: %s\n", current_line, $1);
@@ -57,10 +81,10 @@ expr : KEYWORD {
         yyerror("undefined operation");
     }
     else{
-        devlogf("convert to: 0x%x\n", p.opcode | 0x00);
-
         uint8_t opcode = p.opcode | 0x00;
-        fwrite(&opcode, sizeof(uint8_t), 1, yyout);
+        devlogf("output: %02x: 0x%x\n", nowAddress, opcode);
+
+        result[nowAddress] = opcode;
     }
     free($1);
 }
@@ -71,14 +95,34 @@ expr : KEYWORD {
     if(search_keyword_reg_im_list(&p, $1, $2 & 0x0f))
     {
         yyerror("undefined operation");
-        
     }
     else
     {
-        devlogf("convert to: 0x%x\n", p.opcode | ($4 & 0x0f));
-
         uint8_t opcode = p.opcode | ($4 & 0x0f);
-        fwrite(&opcode, sizeof(uint8_t), 1, yyout);
+        devlogf("output: %02x: 0x%x\n", nowAddress, opcode);
+
+        result[nowAddress] = opcode;
+    }
+    free($1);
+}
+| KEYWORD REGISTER SPLITTER KEYWORD {
+    devlogf("%s:%d: parsed: OP REGISTER WITH KEYWORD / op: %s label: %s, 0x%x\n", input, current_line, $1, $4, $2);
+    // add keyword reference   
+
+    operate_keyword_reg_im p;
+    if(search_keyword_reg_im_list(&p, $1, $2 & 0x0f))
+    {
+        yyerror("undefined operation");
+    }
+    else
+    {
+        uint8_t opcode = p.opcode;
+        devlogf("output: %02x: 0x%x\n", nowAddress, opcode);
+
+        result[nowAddress] = opcode;
+
+        reference addReference = { nowAddress, strdup($4) };
+        addRef(addReference);
     }
     free($1);
 }
@@ -92,10 +136,10 @@ expr : KEYWORD {
     }
     else
     {
-        devlogf("convert to: 0x%x\n", p.opcode);
-
         uint8_t opcode = p.opcode;
-        fwrite(&opcode, sizeof(uint8_t), 1, yyout);
+        devlogf("output: %02x: 0x%x\n", nowAddress, opcode);
+
+        result[nowAddress] = opcode;
     }
     free($1);
 }
@@ -106,11 +150,12 @@ expr : KEYWORD {
     if(search_keyword_reg_list(&p, $1, $2 & 0x0f)){
         yyerror("undefined operation");
     }
-    else{
-        devlogf("convert to: 0x%x\n", p.opcode);
-
+    else
+    {
         uint8_t opcode = p.opcode;
-        fwrite(&opcode, sizeof(uint8_t), 1, yyout);
+        devlogf("output: %02x: 0x%x\n", nowAddress, opcode);
+
+        result[nowAddress] = opcode;
     }
     free($1);
 
@@ -122,26 +167,32 @@ expr : KEYWORD {
     if(search_keyword_im_list(&p, $1)){
         yyerror("undefined operation");
     }
-    else{
-        devlogf("convert to: 0x%x\n", p.opcode | ($2 & 0x0f));
-
+    else
+    {
         uint8_t opcode = p.opcode | ($2 & 0x0f);
-        fwrite(&opcode, sizeof(uint8_t), 1, yyout);
+        devlogf("output: %02x: 0x%x\n", nowAddress, opcode);
+
+        result[nowAddress] = opcode;
     }
     free($1);
 }
 | KEYWORD KEYWORD {
-    devlogf("parse (line:%d) op: %s labelname:\n", current_line, $1, $2);
+    devlogf("parse (line:%d) op: %s label:%s\n", current_line, $1, $2);
 
     operate_keyword_im p;
     if(search_keyword_im_list(&p, $1)){
         yyerror("undefined operation");
     }
-    else{
-        devlogf("convert to: 0x%x\n", p.opcode | ($2 & 0x0f));
+    else
+    {
+        uint8_t opcode = p.opcode;
+        devlogf("output: %02x: 0x%x\n", nowAddress, opcode);
 
-        uint8_t opcode = p.opcode | ($2 & 0x0f);
-        fwrite(&opcode, sizeof(uint8_t), 1, yyout);
+        result[nowAddress] = opcode;
+
+        // save reference
+        reference tempRef = {nowAddress, strdup($2)};
+        addRef(tempRef);
     }
     free($1);
 }
@@ -213,11 +264,33 @@ int main(int argc, char **argv)
         fclose(yyout);
         return 1;
     }
+
+    for (int i = 0; i < currentRefIndex; i++)
+    {   
+        label *targetLabel = searchLabel(referenceList[i].labelname);
+
+        if (targetLabel != NULL){
+            devlogf("gen:   Label %s address 0x%02x to address 0x%02x\n", referenceList[i].labelname, referenceList[i].refaddress, targetLabel->address & 0x0f);
+            result[referenceList[i].refaddress] |= (targetLabel->address & 0x0f);
+        }
+        else{
+            fprintf(stderr, "error:  label: %s is not defined.\n", referenceList[i].labelname);
+            return 1;
+        }
+    }
+
+    for (int i = 0; i < MEMORY_SIZE; i++)
+    {
+        fwrite(&result[i], sizeof(uint8_t), 1, yyout);
+    }
+    
     fclose(yyin);
     fclose(yyout);
     
     free(input);
     free(output);
+    freeLabelRef();
+    
     return 0;
 }
 

@@ -19,13 +19,12 @@ operate_keyword_reg_reg operate_keyword_reg_reg_list[] = {
 operate_keyword_reg operate_keyword_reg_list[] = {
     {"IN", REG_A, 0x20},  // in a
     {"IN", REG_B, 0x60},  // in b
-    {"OUT", REG_B, 0x90}, // in b
-
+    {"OUT", REG_B, 0x90}, // out b
 };
 
 operate_keyword_im operate_keyword_im_list[] = {
-    {"OUT", 0xB0}, // in a
-    {"JMP", 0xF0}, // jmp b
+    {"OUT", 0xB0}, // out im
+    {"JMP", 0xF0}, // jmp im
     {"JNC", 0xE0}, // jnc im
 };
 

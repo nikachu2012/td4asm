@@ -8,5 +8,6 @@ y.output
 
 *.o
 
+*.su
 td4asm
 .vscode

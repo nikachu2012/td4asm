@@ -54,7 +54,7 @@ LF         "\n"
 }
 
 
-{LF}      { return(LF); }
+{LF}      { return LF; }
 
 {SPLITTER} { return SPLITTER; }
 

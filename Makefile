@@ -3,7 +3,7 @@ BISON = bison -d
 
 OUTNAME = td4asm
 OBJ = asm.tab.o lex.yy.o src/op/op.o src/log/log.o src/label/label.o
-LIBS = -ly -ll -lm
+LIBS = -ly -lfl -lm
 CC = gcc
 
 

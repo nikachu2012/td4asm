@@ -28,13 +28,30 @@ operate_keyword_im operate_keyword_im_list[] = {
     {"JNC", 0xE0}, // jnc im
 };
 
+char *opCopyUpper(char *opname)
+{
+    char *opcopy = strdup(opname);
+
+    for (int i = 0; opcopy[i] != '\0'; i++)
+    {
+        /* code */
+        opcopy[i] = toupper(opcopy[i]);
+    }
+
+    return opcopy;
+}
+
 BOOL search_keyword_list(operate_keyword *writeto, char *opname)
 {
+    char *opcopy = opCopyUpper(opname);
+
     for (size_t i = 0; i < (sizeof(operate_keyword_list) / sizeof(operate_keyword)); i++)
     {
-        if (strcmp(operate_keyword_list[i].name, opname) == 0)
+        if (strcmp(operate_keyword_list[i].name, opcopy) == 0)
         {
             *writeto = operate_keyword_list[i];
+
+            free(opcopy);
             return 0;
         }
         else
@@ -42,15 +59,21 @@ BOOL search_keyword_list(operate_keyword *writeto, char *opname)
             continue;
         }
     }
+
+    free(opcopy);
     return 1;
 }
 BOOL search_keyword_reg_im_list(operate_keyword_reg_im *writeto, char *opname, REGISTER_VAL reg)
 {
+    char *opcopy = opCopyUpper(opname);
+
     for (size_t i = 0; i < (sizeof(operate_keyword_reg_im_list) / sizeof(operate_keyword_reg_im)); i++)
     {
-        if (strcmp(operate_keyword_reg_im_list[i].name, opname) == 0 && operate_keyword_reg_im_list[i].dest_reg == reg)
+        if (strcmp(operate_keyword_reg_im_list[i].name, opcopy) == 0 && operate_keyword_reg_im_list[i].dest_reg == reg)
         {
             *writeto = operate_keyword_reg_im_list[i];
+
+            free(opcopy);
             return 0;
         }
         else
@@ -58,15 +81,21 @@ BOOL search_keyword_reg_im_list(operate_keyword_reg_im *writeto, char *opname, R
             continue;
         }
     }
+
+    free(opcopy);
     return 1;
 }
 BOOL search_keyword_reg_reg_list(operate_keyword_reg_reg *writeto, char *opname, REGISTER_VAL dest_reg, REGISTER_VAL source_reg)
 {
+    char *opcopy = opCopyUpper(opname);
+
     for (size_t i = 0; i < (sizeof(operate_keyword_reg_reg_list) / sizeof(operate_keyword_reg_reg)); i++)
     {
-        if (strcmp(operate_keyword_reg_reg_list[i].name, opname) == 0 && operate_keyword_reg_reg_list[i].dest_reg == dest_reg && operate_keyword_reg_reg_list[i].source_reg == source_reg)
+        if (strcmp(operate_keyword_reg_reg_list[i].name, opcopy) == 0 && operate_keyword_reg_reg_list[i].dest_reg == dest_reg && operate_keyword_reg_reg_list[i].source_reg == source_reg)
         {
             *writeto = operate_keyword_reg_reg_list[i];
+
+            free(opcopy);
             return 0;
         }
         else
@@ -74,15 +103,21 @@ BOOL search_keyword_reg_reg_list(operate_keyword_reg_reg *writeto, char *opname,
             continue;
         }
     }
+
+    free(opcopy);
     return 1;
 }
 BOOL search_keyword_reg_list(operate_keyword_reg *writeto, char *opname, REGISTER_VAL reg)
 {
+    char *opcopy = opCopyUpper(opname);
+
     for (size_t i = 0; i < (sizeof(operate_keyword_reg_list) / sizeof(operate_keyword_reg)); i++)
     {
-        if (strcmp(operate_keyword_reg_list[i].name, opname) == 0 && operate_keyword_reg_list[i].target_reg == reg)
+        if (strcmp(operate_keyword_reg_list[i].name, opcopy) == 0 && operate_keyword_reg_list[i].target_reg == reg)
         {
             *writeto = operate_keyword_reg_list[i];
+
+            free(opcopy);
             return 0;
         }
         else
@@ -90,15 +125,21 @@ BOOL search_keyword_reg_list(operate_keyword_reg *writeto, char *opname, REGISTE
             continue;
         }
     }
+
+    free(opcopy);
     return 1;
 }
 BOOL search_keyword_im_list(operate_keyword_im *writeto, char *opname)
 {
+    char *opcopy = opCopyUpper(opname);
+
     for (size_t i = 0; i < (sizeof(operate_keyword_im_list) / sizeof(operate_keyword)); i++)
     {
-        if (strcmp(operate_keyword_im_list[i].name, opname) == 0)
+        if (strcmp(operate_keyword_im_list[i].name, opcopy) == 0)
         {
             *writeto = operate_keyword_im_list[i];
+
+            free(opcopy);
             return 0;
         }
         else
@@ -106,5 +147,7 @@ BOOL search_keyword_im_list(operate_keyword_im *writeto, char *opname)
             continue;
         }
     }
+
+    free(opcopy);
     return 1;
 }

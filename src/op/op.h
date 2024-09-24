@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
 
 #define REG_A 1
 #define REG_B 2
@@ -52,6 +54,8 @@ typedef struct
 
     uint8_t opcode;
 } operate_keyword_im;
+
+char *opCopyUpper(char *opname);
 
 BOOL search_keyword_list(operate_keyword *writeto, char *opname);
 BOOL search_keyword_reg_im_list(operate_keyword_reg_im *writeto, char *opname, REGISTER_VAL reg);

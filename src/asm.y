@@ -49,7 +49,6 @@ void yyerror(const char *msg);
 %%
 input : line LF { current_line++; }
 | input line LF { current_line++; }
-| LF { exit(0); }
 ;
 
 line : expr {

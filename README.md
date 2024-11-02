@@ -6,6 +6,11 @@ Use flex/bison.
 - 4bit opcode
 - 4bit immediate data
 
+## usage
+```
+./td4asm [-i inputfile] [-o outputfile] [-d]
+```
+
 ## how to compile
 You must install gcc, GNU make.
 Require library: bison flex (-ly, -lfl)

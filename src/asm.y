@@ -201,8 +201,9 @@ expr : KEYWORD {
 int main(int argc, char **argv)
 {
     int opt, flg = 0;
+    int asciiStyle = 0, pythonStyle = 0, cStyle = 0;
     
-    while ((opt = getopt(argc, argv, "i:o:d")) != -1)
+    while ((opt = getopt(argc, argv, "i:o:dapc")) != -1)
     {
         switch (opt)
         {
@@ -227,16 +228,32 @@ int main(int argc, char **argv)
                 }
                 flg++;
                 break;
+            
+            case 'a':
+                asciiStyle = 1;
+                break;
+
+            case 'p':
+                pythonStyle = 1;
+                break;
+
+            case 'c':
+                cStyle = 1;
+                break;
 
             default:
-                printf("Usage: %s [-i inputfile] [-o outputfile] [-d]\n", argv[0]);
+                printf("Usage: %s [-i inputfile] [-o outputfile] [-d] [-a] [-p] [-c]\n", argv[0]);
+                printf("\n-d: Debug\n-a: ASCII style (ex: 0F00ABCD)\n-p: Python style (ex: \\x0f\\x00\\xab\\xcd)\n-c: C style (ex: {0x0f, 0x00, 0xab, 0xcd})\n");
+                
                 return 1;
                 break;
         }
     }
 
     if (flg < 2) {
-        printf("Usage: %s [-i inputfile] [-o outputfile] [-d]\n", argv[0]);
+        printf("Usage: %s [-i inputfile] [-o outputfile] [-d] [-a] [-p] [-c]\n", argv[0]);
+        printf("\n-d: Debug\n-a: ASCII style (ex: 0F00ABCD)\n-p: Python style (ex: \\x0f\\x00\\xab\\xcd)\n-c: C style (ex: {0x0f, 0x00, 0xab, 0xcd})\n");
+
         return 1;
     }
 
@@ -278,10 +295,40 @@ int main(int argc, char **argv)
         }
     }
 
-    for (int i = 0; i < MEMORY_SIZE; i++)
+    if (asciiStyle)
     {
-        fwrite(&result[i], sizeof(uint8_t), 1, yyout);
+        for (int i = 0; i < MEMORY_SIZE; i++)
+        {
+            fprintf(yyout, "%02x", result[i]);
+        }
     }
+    else if (pythonStyle)
+    {
+        for (int i = 0; i < MEMORY_SIZE; i++)
+        {
+            fprintf(yyout, "\\x%02x", result[i]);
+        }
+    }
+    else if (cStyle)
+    {   
+        fprintf(yyout, "{");
+        for (int i = 0; i < MEMORY_SIZE - 1; i++)
+        {
+            fprintf(yyout, "0x%02x, ", result[i]);
+        }
+        fprintf(yyout, "0x%02x", result[MEMORY_SIZE - 1]);
+        fprintf(yyout, "}");
+    }
+    else
+    {
+        for (int i = 0; i < MEMORY_SIZE; i++)
+        {
+            fwrite(&result[i], sizeof(uint8_t), 1, yyout);
+        }
+    }
+
+
+    
     
     fclose(yyin);
     fclose(yyout);
